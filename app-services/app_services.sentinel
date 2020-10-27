@@ -11,7 +11,7 @@ azure_app_service = filter tfplan.resource_changes as _, resource_changes {
 
 allow_https_only = rule {
 	all azure_app_service as _, service {
-		service.change.after.https_only is "true"
+		service.change.after.https_only is true
 	}
 }
 
