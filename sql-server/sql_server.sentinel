@@ -1,0 +1,27 @@
+import "tfplan/v2" as tfplan
+
+
+azure_sql_servers = filter tfplan.resource_changes as _, resource_changes {
+    resource_changes.type is "azurerm_mssql_server" and
+        resource_changes.mode is "managed" and
+        (resource_changes.change.actions contains "create" or
+            resource_changes.change.actions is ["update"])
+}
+
+
+db_name_check = rule {
+	all azure_sql_servers as _, servers {
+		servers.change.after.name matches "(hashicorp)(-)(payments|digital|data)(-)([a-zA-Z0-9]{6,12})"
+	}
+}
+
+if db_name_check {
+	print("Name matches naming convention.")
+} else {
+	print("Please note your chosen name does not conform to the Organisation naming convention as defined at http://mywiki.com/naming. Please change the name to the following pattern which is case sensitive: hashicorp-<teamname>-<projectname>. Note that project names must be between 6-12 characters and can include letters and numbers only.")
+}
+
+
+main = rule {
+	db_name_check
+}
